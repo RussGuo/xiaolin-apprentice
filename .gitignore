@@ -1,0 +1,3 @@
+cases/*
+!cases/.gitkeep
+__pycache__/
