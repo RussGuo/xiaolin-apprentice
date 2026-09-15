@@ -180,6 +180,13 @@ ul.rel li{{margin-bottom:4px}}
     open(out + ".md", "w", encoding="utf-8").write("\n".join(lines) + "\n")
     open(out + ".html", "w", encoding="utf-8").write(html)
     chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    if os.environ.get("CODEX_SANDBOX") or os.environ.get("CODEX_SANDBOX_NETWORK_DISABLED"):
+        # 在 Codex 沙箱(seatbelt)里启动 Chrome 会在 LaunchServices 注册时 abort 并生成崩溃报告,直接跳过截图
+        print(out + ".html", out + ".md", "沙箱内不启动 Chrome:PNG 未生成。请在沙箱外(escalated)重跑 run.py 生成 card.png,或直接打开 card.html")
+        return
+    if not os.path.exists(chrome):
+        print(out + ".html", out + ".md", "未找到 Chrome,只生成了 HTML")
+        return
     subprocess.run([chrome, "--headless=new", "--hide-scrollbars", "--window-size=1256,1500", f"--screenshot={out}.png", "file://" + os.path.abspath(out + ".html")], capture_output=True)
     try:
         from PIL import Image

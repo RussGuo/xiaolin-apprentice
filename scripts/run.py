@@ -6,6 +6,19 @@
 """
 import argparse, json, os, subprocess, sys
 
+def ensure_deps():
+    """依赖自检:lunar_python 缺失时用当前解释器装到用户目录;装不上就明确报错,不往下跑。"""
+    try:
+        import lunar_python  # noqa
+        return
+    except ImportError:
+        pass
+    r = subprocess.run([sys.executable, "-m", "pip", "install", "--user", "--quiet", "lunar_python>=1.4,<2"], capture_output=True, text=True)
+    try:
+        import importlib; importlib.invalidate_caches(); import lunar_python  # noqa
+    except ImportError:
+        sys.exit("缺少依赖 lunar_python 且自动安装失败(沙箱内可能禁网)。请在沙箱外执行:\n  " + sys.executable + ' -m pip install --user "lunar_python>=1.4,<2"\n' + r.stderr[-800:])
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
@@ -16,6 +29,7 @@ def main():
     ap.add_argument("--tz"); ap.add_argument("--calendar", default="solar"); ap.add_argument("--leap", action="store_true")
     ap.add_argument("--as-of"); ap.add_argument("--out")
     a = ap.parse_args()
+    ensure_deps()
     out = a.out or os.path.join(ROOT, "cases", f"{a.date}-{a.time.replace(':', '')}-{a.gender}")
     os.makedirs(out, exist_ok=True)
     cmd = [sys.executable, os.path.join(HERE, "paipan.py"), "--date", a.date, "--time", a.time, "--gender", a.gender, "--calendar", a.calendar]
@@ -39,13 +53,15 @@ def main():
         sys.exit("卡片渲染失败:\n" + r3.stderr[-2000:])
     xj = json.loads(r2.stdout)
     tr = pp.get("time_resolution", {})
+    png = os.path.join(out, "card.png")
+    png_note = None if os.path.exists(png) else (r3.stdout.strip().splitlines()[-1] if r3.stdout.strip() else "未生成 PNG")
     print(json.dumps({
         "pillars": pp["pillars"], "day_master": pp["day_master"], "verdict": xj["verdict"],
         "xi": [x["element"] for x in sorted(xj["xi"], key=lambda x: (x.get("rank") is None, x.get("rank") or 0))],
         "ji": [x["element"] for x in sorted(xj["ji"], key=lambda x: (x.get("rank") is None, x.get("rank") or 0))],
         "neutral": [x["element"] for x in xj.get("neutral", [])],
         "边界提示": tr.get("边界提示"), "warnings": pp.get("warnings", []),
-        "card_png": os.path.join(out, "card.png"), "card_html": os.path.join(out, "card.html"), "card_md": os.path.join(out, "card.md"),
+        "card_png": png if os.path.exists(png) else None, "png_note": png_note, "card_html": os.path.join(out, "card.html"), "card_md": os.path.join(out, "card.md"),
     }, ensure_ascii=False, indent=1))
 
 if __name__ == "__main__":

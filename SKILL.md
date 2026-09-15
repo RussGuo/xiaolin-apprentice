@@ -17,7 +17,7 @@ description: "小霖学徒:命理师小霖带 AI 徒弟看盘的工作流。收�
 
 ## 第一阶段:排盘
 
-收到出生日期、时间、性别后:
+收到出生日期、时间、性别后,**在沙箱外(Codex 里用 escalated permissions,理由:要 pip 装依赖并启动 Chrome 无头截图)运行**:
 
 ```bash
 python3 ~/.agents/skills/xiaolin-apprentice/scripts/run.py --date 1990-06-01 --time 08:00 --gender 女 [--tz Asia/Tokyo] [--calendar lunar] [--leap]
@@ -25,6 +25,8 @@ python3 ~/.agents/skills/xiaolin-apprentice/scripts/run.py --date 1990-06-01 --t
 
 脚本依次做:`paipan.py` 排盘 → `xiji.py` 强弱喜忌(v1.0,带回归)→ `render_card.py` 出卡片。输出目录 `cases/<日期-时间-性别>/`:`paipan.json`、`xiji.json`、`card.html`、`card.png`、`card.md`(卡片的文本版,字段与卡片一一对应)。
 
+- `run.py` 会先自检依赖:缺 `lunar_python` 就用当前解释器 `pip install --user` 装上;装不上会直接报错并给出命令,照着在沙箱外装,不要自己找替代脚本。
+- 在 Codex 沙箱内运行时脚本不会启动 Chrome(沙箱里 Chrome 会崩并留下系统崩溃报告),只出 HTML 和 md,输出里 `png_note` 会说明;这种情况请求 escalated 权限重跑一次拿 PNG。
 - 脚本报错(`ok: false`)时把错误原文转给用户核对输入,不要猜。
 - `paipan.json` 的 `time_resolution.边界提示` 非空(时辰交界 20 分钟内、早晚子时)时,把提示原文告诉小霖,让他定时辰。
 - 把 `card.png` 交给用户(Codex 里直接给路径并展示;不要把 JSON 贴出来)。然后停下,等小霖确认排盘(「继续」「对」「开始」都算确认)。
@@ -96,4 +98,4 @@ git -C ~/.agents/skills/xiaolin-apprentice pull                                 
 
 ## 依赖
 
-`pip3 install "lunar_python>=1.4,<2"`;截图用本机 Chrome(`/Applications/Google Chrome.app`),没有 Chrome 时只出 HTML。
+`run.py` 自动安装 `lunar_python>=1.4,<2`(也可手动 `python3 -m pip install --user "lunar_python>=1.4,<2"`);截图用本机 Chrome(`/Applications/Google Chrome.app`),没有 Chrome 或在沙箱内时只出 HTML 与 md。
