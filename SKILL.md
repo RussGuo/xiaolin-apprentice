@@ -84,6 +84,15 @@ N. …
 
 小霖的反馈是一段口语(多为语音转文字),原样保留;AI 据此改写定版,补他指出的遗漏,记错因归类。归档四件原始件:盘、AI 初判、小霖原话、定版。
 
+## 安装与更新(Codex / Claude Code 通用)
+
+```bash
+git clone https://github.com/RussGuo/xiaolin-apprentice ~/.agents/skills/xiaolin-apprentice   # 完整克隆,不要加 --filter / --sparse
+git -C ~/.agents/skills/xiaolin-apprentice pull                                              # 更新
+```
+
+跑之前先确认 `scripts/run.py` 存在。如果目录里只有 SKILL.md 没有 `scripts/`,说明克隆时启用了 sparse checkout,在该目录执行 `git sparse-checkout disable && git checkout -- .` 恢复,不要去别处找备份、不要自己重写脚本。
+
 ## 依赖
 
 `pip3 install "lunar_python>=1.4,<2"`;截图用本机 Chrome(`/Applications/Google Chrome.app`),没有 Chrome 时只出 HTML。
