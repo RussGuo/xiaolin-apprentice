@@ -1,3 +1,7 @@
-cases/*
-!cases/.gitkeep
+# 排盘产物不进仓库(可由 run.py 重跑复现)
+cases/**/card.png
+cases/**/card.html
+cases/**/paipan.json
+cases/**/xiji.json
+# 归档 md(card.md / 02-初判 / 03-小霖反馈 / 04-定版 / 05-理法候选)一律入库:仓库私有,小霖的判断和原始 log 全留
 __pycache__/
